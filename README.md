@@ -1,2 +1,2 @@
-# QR-Studio
-Mi generador profesional de códigos QR
+# QR-Simple
+Mi generador simple de códigos QR
