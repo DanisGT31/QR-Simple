@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generador de códigos QR personalizados</title>
+<style>
+:root{
+  --bg:#f6f7fb; --card:#ffffff; --text:#1b1f2a; --muted:#5d6577; --border:#dfe3ec;
+  --accent:#4f46e5; --accent-text:#ffffff; color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12141b; --card:#1b1e28; --text:#eceef5; --muted:#9aa2b5; --border:#2c3140;
+    --accent:#818cf8; --accent-text:#12141b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12141b; --card:#1b1e28; --text:#eceef5; --muted:#9aa2b5; --border:#2c3140;
+  --accent:#818cf8; --accent-text:#12141b; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:1000px;margin:0 auto;padding:26px 16px 44px}
+h1{font-size:1.65rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}.preview{order:-1;position:static!important}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
+.preview{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+details{border-top:1px solid var(--border);padding:4px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:700;padding:10px 0;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"▾";float:right;color:var(--muted)}
+details[open] summary::after{content:"▴"}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:2px 0 12px}
+.f .full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:.82rem;margin:0 0 4px}
+.chk{display:flex;gap:8px;align-items:center;font-weight:500}
+textarea,select,input[type=file]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:.92rem}
+textarea{min-height:84px;resize:vertical}
+input[type=color]{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--bg);padding:3px;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--accent)}
+textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;font-weight:600;padding:10px 18px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-text);cursor:pointer}
+button.sec{background:transparent;color:var(--text);border:1px solid var(--border);padding:7px 12px;font-size:.85rem}
+button:disabled{opacity:.45;cursor:not-allowed}
+.presets{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:12px}
+#box{width:100%;display:flex;justify-content:center;min-height:200px;align-items:center}
+#box canvas{display:block;width:100%;max-width:340px;height:auto;
+  background:repeating-conic-gradient(#8883 0 25%,transparent 0 50%) 50%/16px 16px}
+.empty{color:var(--muted);text-align:center}
+.msg{font-size:.85rem;color:var(--muted);text-align:center;min-height:1.3em}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Generador de códigos QR personalizados</h1>
+  <p class="sub">Degradados, bordes, logotipo y estilos de código. Todo se actualiza en tiempo real.</p>
+  <div class="layout">
+    <section class="card" id="form">
+      <div class="presets" id="presets">
+        <button class="sec" data-p="clasico">Clásico</button>
+        <button class="sec" data-p="oceano">Océano</button>
+        <button class="sec" data-p="atardecer">Atardecer</button>
+        <button class="sec" data-p="neon">Neón</button>
+      </div>
+      <details open><summary>Contenido</summary>
+        <div class="f">
+          <div class="full"><label for="txt">Enlace o texto</label>
+          <textarea id="txt">https://ejemplo.com</textarea></div>
+          <div class="full"><label for="ec">Corrección de errores</label>
+          <select id="ec"><option value="L">Baja (L)</option><option value="M" selected>Media (M)</option><option value="Q">Alta (Q)</option><option value="H">Muy alta (H)</option></select></div>
+        </div>
+      </details>
+      <details open><summary>Estilo</summary>
+        <div class="f">
+          <div><label for="ms">Forma de los módulos</label>
+          <select id="ms"><option value="sq">Cuadrados</option><option value="rd">Redondeados</option><option value="dot">Puntos</option><option value="dia">Rombos</option><option value="liq">Líquido</option></select></div>
+          <div><label for="es">Forma de los ojos</label>
+          <select id="es"><option value="sq">Cuadrados</option><option value="rd">Redondeados</option><option value="ci">Circulares</option></select></div>
+          <div class="full"><label for="qm">Margen interior</label><input type="range" id="qm" min="0" max="8" step="1" value="2"></div>
+        </div>
+      </details>
+      <details open><summary>Color y degradado</summary>
+        <div class="f">
+          <div class="full"><label for="gt">Tipo de color</label>
+          <select id="gt"><option value="solid">Sólido</option><option value="linear" selected>Degradado lineal</option><option value="radial">Degradado radial</option></select></div>
+          <div><label for="c1">Color 1</label><input type="color" id="c1" value="#0ea5e9"></div>
+          <div><label for="c2">Color 2</label><input type="color" id="c2" value="#4f46e5"></div>
+          <div class="full"><label for="ga">Ángulo del degradado</label><input type="range" id="ga" min="0" max="360" value="135"></div>
+          <div class="full chk"><input type="checkbox" id="eyeOwn"><label for="eyeOwn" style="margin:0;font-weight:500">Color propio para los ojos</label></div>
+          <div><label for="eyeC">Color de los ojos</label><input type="color" id="eyeC" value="#4f46e5"></div>
+          <div><label for="bg">Color de fondo</label><input type="color" id="bg" value="#f0f9ff"></div>
+          <div class="full chk"><input type="checkbox" id="bgT"><label for="bgT" style="margin:0;font-weight:500">Fondo transparente</label></div>
+        </div>
+      </details>
+      <details><summary>Borde</summary>
+        <div class="f">
+          <div class="full"><label for="bw">Grosor del borde</label><input type="range" id="bw" min="0" max="60" value="24"></div>
+          <div><label for="bc">Color del borde</label><input type="color" id="bc" value="#4f46e5"></div>
+          <div><label for="br">Redondeo de esquinas</label><input type="range" id="br" min="0" max="100" value="24"></div>
+        </div>
+      </details>
+      <details><summary>Logotipo</summary>
+        <div class="f">
+          <div class="full"><label for="logoF">Imagen (PNG, JPG, SVG)</label><input type="file" id="logoF" accept="image/*"></div>
+          <div><label for="ls">Tamaño del logo</label><input type="range" id="ls" min="10" max="26" value="20"></div>
+          <div><label for="lp">Margen alrededor</label><input type="range" id="lp" min="0" max="2" step="0.25" value="0.5"></div>
+          <div><label for="lsh">Forma del recuadro</label>
+          <select id="lsh"><option value="ci">Círculo</option><option value="rd" selected>Redondeado</option><option value="sq">Cuadrado</option></select></div>
+          <div style="align-self:end"><button class="sec" id="logoX" type="button">Quitar logo</button></div>
+        </div>
+      </details>
+    </section>
+    <section class="card preview">
+      <div id="box"><p class="empty" id="empty">Escribe algo para generar tu QR.</p></div>
+      <button id="dl" disabled>Descargar PNG</button>
+      <div class="msg" id="msg"></div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var g=function(i){var e=$(i);return e.type==='checkbox'?e.checked:e.value};
+  var logo=null, timer=null, cur=null, downloads=null;
+
+  function rr(p,x,y,w,h,r){
+    if(typeof r==='number') r=[r,r,r,r];
+    var m=Math.min(w,h)/2; r=r.map(function(v){return Math.min(v,m)});
+    p.moveTo(x+r[0],y);
+    p.arcTo(x+w,y,x+w,y+h,r[1]);
+    p.arcTo(x+w,y+h,x,y+h,r[2]);
+    p.arcTo(x,y+h,x,y,r[3]);
+    p.arcTo(x,y,x+w,y,r[0]);
+    p.closePath();
+  }
+
+  function show(ok){
+    $('dl').disabled=!ok;
+    if(!ok){cur=null;$('box').innerHTML='';var p=document.createElement('p');p.className='empty';p.textContent='Escribe algo para generar tu QR.';$('box').appendChild(p);}
+  }
+
+  function draw(){
+    var v=g('txt').trim(), msg=$('msg'); msg.textContent='';
+    var gt=g('gt'); $('c2').disabled=gt==='solid'; $('ga').disabled=gt!=='linear';
+    $('ec').disabled=!!logo;
+    if(!v){show(false);return}
+    var qr;
+    try{qr=qrcode(0,logo?'H':g('ec'));qr.addData(v);qr.make();}
+    catch(e){show(false);msg.textContent='El texto es demasiado largo. Prueba con una corrección más baja.';return}
+    if(logo) msg.textContent='Con logo se usa corrección muy alta (H) automáticamente.';
+
+    var n=qr.getModuleCount(), qm=+g('qm'), bw=+g('bw');
+    var c=Math.max(6,Math.round(1024/(n+2*qm)));
+    var M=n*c, o=bw+qm*c, T=M+2*qm*c+2*bw, R=+g('br')/100*T/2, mid=T/2;
+    var cv=document.createElement('canvas'); cv.width=cv.height=T;
+    var x=cv.getContext('2d');
+
+    // borde y fondo
+    if(bw>0){x.fillStyle=g('bc');x.beginPath();rr(x,0,0,T,T,R);rr(x,bw,bw,T-2*bw,T-2*bw,Math.max(R-bw,0));x.fill('evenodd');}
+    if(!g('bgT')){x.fillStyle=g('bg');x.beginPath();rr(x,bw,bw,T-2*bw,T-2*bw,Math.max(R-bw,0));x.fill();}
+
+    // color o degradado
+    function fill(){
+      if(gt==='solid') return g('c1');
+      var a=+g('ga')*Math.PI/180, dx=Math.cos(a)*mid, dy=Math.sin(a)*mid;
+      var gr=gt==='radial'?x.createRadialGradient(mid,mid,0,mid,mid,T*.7):x.createLinearGradient(mid-dx,mid-dy,mid+dx,mid+dy);
+      gr.addColorStop(0,g('c1'));gr.addColorStop(1,g('c2'));return gr;
+    }
+    function paint(fn,f){
+      var l=document.createElement('canvas');l.width=l.height=T;
+      var y=l.getContext('2d');y.fillStyle='#000';fn(y);
+      y.globalCompositeOperation='source-in';y.fillStyle=f;y.fillRect(0,0,T,T);
+      x.drawImage(l,0,0);
+    }
+
+    // zona del logo
+    var Ls=logo?+g('ls')/100*M:0, hh=Ls/2+(+g('lp'))*c, lsh=g('lsh');
+    function hole(r,k){
+      if(!logo) return false;
+      var dx=Math.abs(o+(k+.5)*c-mid), dy=Math.abs(o+(r+.5)*c-mid);
+      return lsh==='ci'?Math.hypot(dx,dy)<=hh+c*.3:(dx<=hh&&dy<=hh);
+    }
+    function fin(r,k){return (r<7&&k<7)||(r<7&&k>=n-7)||(r>=n-7&&k<7)}
+    function dark(r,k){return r>=0&&k>=0&&r<n&&k<n&&!fin(r,k)&&qr.isDark(r,k)&&!hole(r,k)}
+
+    // módulos
+    var ms=g('ms');
+    paint(function(y){
+      for(var r=0;r<n;r++)for(var k=0;k<n;k++){
+        if(!dark(r,k)) continue;
+        var px=o+k*c, py=o+r*c; y.beginPath();
+        if(ms==='sq') y.rect(px-.4,py-.4,c+.8,c+.8);
+        else if(ms==='rd') rr(y,px+c*.04,py+c*.04,c*.92,c*.92,c*.38);
+        else if(ms==='dot') y.arc(px+c/2,py+c/2,c*.46,0,7);
+        else if(ms==='dia'){var h=c*.64,cx=px+c/2,cy=py+c/2;y.moveTo(cx,cy-h);y.lineTo(cx+h,cy);y.lineTo(cx,cy+h);y.lineTo(cx-h,cy);y.closePath();}
+        else{
+          var u=dark(r-1,k),d=dark(r+1,k),l=dark(r,k-1),t=dark(r,k+1),h2=c/2;
+          rr(y,px-.3,py-.3,c+.6,c+.6,[!u&&!l?h2:0,!u&&!t?h2:0,!d&&!t?h2:0,!d&&!l?h2:0]);
+        }
+        y.fill();
+      }
+    },fill());
+
+    // ojos
+    var es=g('es');
+    var ra=es==='sq'?0:es==='rd'?c*1.8:3.5*c, rb=es==='sq'?0:es==='rd'?c*1.1:2.5*c, rp=es==='sq'?0:es==='rd'?c*.9:1.5*c;
+    paint(function(y){
+      [[0,0],[n-7,0],[0,n-7]].forEach(function(e){
+        var ex=o+e[0]*c, ey=o+e[1]*c;
+        y.beginPath();rr(y,ex,ey,7*c,7*c,ra);rr(y,ex+c,ey+c,5*c,5*c,rb);y.fill('evenodd');
+        y.beginPath();rr(y,ex+2*c,ey+2*c,3*c,3*c,rp);y.fill();
+      });
+    },g('eyeOwn')?g('eyeC'):fill());
+
+    // logotipo
+    if(logo){
+      var bs=hh*2, bx=mid-hh, rad=lsh==='ci'?hh:lsh==='rd'?bs*.22:0;
+      x.fillStyle=g('bgT')?'#ffffff':g('bg');
+      x.beginPath();rr(x,bx,bx,bs,bs,rad);x.fill();
+      var cr=lsh==='ci'?Ls/2:lsh==='rd'?Ls*.18:0;
+      x.save();x.beginPath();rr(x,mid-Ls/2,mid-Ls/2,Ls,Ls,cr);x.clip();
+      var s=Math.min(Ls/logo.width,Ls/logo.height), w=logo.width*s, h=logo.height*s;
+      x.drawImage(logo,mid-w/2,mid-h/2,w,h);x.restore();
+    }
+
+    cur=cv; var box=$('box'); box.innerHTML=''; box.appendChild(cv); $('dl').disabled=false;
+  }
+
+  function schedule(){clearTimeout(timer);timer=setTimeout(draw,120)}
+
+  $('form').addEventListener('input',function(e){if(e.target.id!=='logoF')schedule()});
+  $('form').addEventListener('change',function(e){
+    if(e.target.id==='logoF'){
+      var f=e.target.files&&e.target.files[0]; if(!f) return;
+      var fr=new FileReader();
+      fr.onload=function(){var im=new Image();im.onload=function(){logo=im;draw()};im.src=fr.result};
+      fr.readAsDataURL(f);
+    } else schedule();
+  });
+  $('logoX').addEventListener('click',function(){logo=null;$('logoF').value='';draw()});
+
+  var P={
+    clasico:{ms:'sq',es:'sq',qm:2,gt:'solid',c1:'#000000',ga:0,eyeOwn:false,bg:'#ffffff',bgT:false,bw:0,bc:'#000000',br:0},
+    oceano:{ms:'liq',es:'rd',qm:2,gt:'linear',c1:'#0ea5e9',c2:'#4f46e5',ga:135,eyeOwn:false,bg:'#f0f9ff',bgT:false,bw:24,bc:'#4f46e5',br:24},
+    atardecer:{ms:'dot',es:'ci',qm:2,gt:'linear',c1:'#f97316',c2:'#db2777',ga:45,eyeOwn:false,bg:'#fff7ed',bgT:false,bw:20,bc:'#f97316',br:30},
+    neon:{ms:'rd',es:'rd',qm:2,gt:'radial',c1:'#22d3ee',c2:'#a855f7',ga:0,eyeOwn:true,eyeC:'#22d3ee',bg:'#0b1020',bgT:false,bw:16,bc:'#22d3ee',br:12}
+  };
+  $('presets').addEventListener('click',function(e){
+    var p=P[e.target.getAttribute('data-p')]; if(!p) return;
+    Object.keys(p).forEach(function(k){var el=$(k);if(el.type==='checkbox')el.checked=p[k];else el.value=p[k]});
+    draw();
+  });
+
+  $('dl').addEventListener('click',function(){
+    if(!cur) return; var m=$('msg');
+    cur.toBlob(function(blob){
+      if(!blob){m.textContent='No se pudo generar la imagen.';return}
+      if(downloads){
+        downloads.save({filename:'codigo-qr.png',data:blob}).then(function(){m.textContent='¡Listo! Tu código QR se ha guardado.'})
+          .catch(function(er){if(!er||er.code!=='declined')m.textContent='No se pudo descargar. Mantén pulsado el QR para guardarlo.'});
+      } else {
+        var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='codigo-qr.png';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+        m.textContent='¡Listo! Tu código QR se ha descargado.';
+      }
+    },'image/png');
+  });
+
+  try{if(window.claude&&window.claude.use){window.claude.use('downloads').then(function(d){downloads=d}).catch(function(){})}}catch(e){}
+  draw();
+})();
+</script>
+</body>
+</html>
